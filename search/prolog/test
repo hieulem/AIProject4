@@ -1,0 +1,6 @@
+from spade import pyxf
+sida=  pyxf.xsb('/home/hieule/Downloads/XSB/bin/xsb')
+sida.load('/home/hieule/AIPJ4/search/prolog/program1.P')
+sida.load('/home/hieule/AIPJ4/search/prolog/program2.P')
+re = sida.query("q(X)")
+print re
