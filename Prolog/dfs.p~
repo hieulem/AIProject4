@@ -1,0 +1,18 @@
+dfs(S,_,[S]) :- goal(S).
+
+dfs(S, Checked,[S|T]) :-
+    % try a move
+    connect(S,S2),
+    % ensure the resulting state is new
+    \+member(S2, Checked),
+    % and that this state leads to the goal
+    dfs(S2, [S2|Checked],T),!.
+
+find_way(S):-
+	dfs(S,[S],X),
+	write(X).
+
+
+
+
+

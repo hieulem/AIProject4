@@ -1,0 +1,27 @@
+% Figure 11.10   An implementation of breadth-first search.
+
+
+% solve( Start, Solution):
+%    Solution is a path (in reverse order) from Start to a goal
+
+solve( Start, Solution)  :-
+  breadthfirst( [ [Start] ]).
+
+% breadthfirst( [ Path1, Path2, ...], Solution):
+%   Solution is an extension to a goal of one of paths
+
+breadthfirst( [[Node | _]|_])  :-
+  goal( Node).
+
+breadthfirst( [Node | Queue])  :-
+  extend( Path, NewNodes),
+  conc( Paths, NewPaths, Paths1),
+  breadthfirst(Paths1).
+
+extend( [Node | Path], NewPaths)  :-
+  bagof( [NewNode, Node | Path],
+         ( connect( Node, NewNode), \+member( NewNode, [Node | Path] ) ),
+         NewPaths),
+  !.
+
+extend( _, [] ).              % bagof failed: Node has no successor

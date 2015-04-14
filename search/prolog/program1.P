@@ -1,7 +1,0 @@
-p(a).
-p(b).
-p(c).
-wall(1,1).
-wall(0,1).
-wall(2,3).
-wall(X,Y):-T1 is X-1,T2 is Y-1,wall(T1,T2).

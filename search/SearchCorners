@@ -1,0 +1,238 @@
+
+def depthFirstSearch(problem = 'CornersProblem'):
+    #get map's outline
+
+  w = problem.walls.width
+  h = problem.walls.height
+  sx, sy = problem.startingPosition
+ # goalx,goaly = problem.goal
+
+ #define the notion to each position in map: (1,1) --> cell01
+
+  notion = []
+  t=0
+  for i in range(0,w):
+    notion.append([])
+  for i in range(0,w):
+    for j in range(0,h):
+        notion[i].append(t)
+        t=t+1
+
+ #prolog file contains connection between cell
+  fname = 'connection.P'
+  from game import Directions
+  dict ={}
+  with open(fname, 'w') as fout:
+
+    fout.write('\n')
+    for i in range(0,w):
+        for j in range(0,h):
+            if not problem.walls[i][j]:
+                if i+1 <= w :
+                    if not problem.walls[i+1][j]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i+1][j].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i+1][j].__str__()
+                        dict[word] = Directions.EAST                #dictionary translating from strings "cellXcellY" to the real direction in game
+                if i-1 >= 0 :
+                    if not problem.walls[i-1][j]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i-1][j].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i-1][j].__str__()
+                        dict[word] = Directions.WEST
+                if j+1 <= h :
+                    if not problem.walls[i][j+1]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i][j+1].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i][j+1].__str__()
+                        dict[word] = Directions.NORTH
+                if j-1 >= 0 :
+                    if not problem.walls[i][j-1]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i][j-1].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i][j-1].__str__()
+                        dict[word] = Directions.SOUTH
+
+
+
+    fout.close()
+ #load prolog fact
+  from spade import pyxf
+  brain = pyxf.xsb('/home/hieule/Downloads/XSB/bin/xsb')
+  brain.load(fname)
+  brain.load('dfs.P')
+  import itertools
+  set_of_goal = list(itertools.permutations(problem.corners, 4))
+  print set_of_goal
+  minsum = 999999
+  save =-1
+  for i in range(0,len(set_of_goal)):
+    start = 'cell'+notion[sx][sy].__str__()
+    goal = 'cell'+notion[set_of_goal[i][0][0]][set_of_goal[i][0][1]].__str__()
+    sum_cost=0
+    feedback = brain.query('dfs('+start+',['+start+'],'+goal+',X).')
+   # print ['dfs('+start+',['+start+'],'+goal+',X).']
+    path=feedback[0].__str__()
+    path = path[8:len(path)-3]
+    path = path.split(',', 9999)
+
+    sum_cost = sum_cost+len(path)
+
+    for j in range(0,3):
+        start = 'cell'+notion[set_of_goal[i][j][0]][set_of_goal[i][j][1]].__str__()
+        goal = 'cell'+notion[set_of_goal[i][j+1][0]][set_of_goal[i][j+1][1]].__str__()
+        feedback = brain.query('dfs('+start+',['+start+'],'+goal+',X).')
+       # print ['dfs('+start+',['+start+'],'+goal+',X).']
+        #time.sleep(0.2)
+        path=feedback[0].__str__()
+        path = path[8:len(path)-3]
+        path = path.split(',', 9999)
+        sum_cost = sum_cost+len(path)
+    if sum_cost <minsum:
+        save = i
+        minsum=sum_cost
+
+  print set_of_goal[save]
+
+  start = 'cell'+notion[sx][sy].__str__()
+  goal = 'cell'+notion[set_of_goal[save][0][0]][set_of_goal[save][0][1]].__str__()
+  feedback = brain.query('dfs('+start+',['+start+'],'+goal+',X).')
+  path=feedback[0].__str__()
+  path = path[8:len(path)-3]
+  path = path.split(',', 9999)
+  path_translated=[]
+  print path
+  for i in range(0,len(path)-1):
+    path_translated.append(dict[path[i]+path[i+1]])
+
+  for j in range(0,3):
+    start = 'cell'+notion[set_of_goal[save][j][0]][set_of_goal[save][j][1]].__str__()
+    goal = 'cell'+notion[set_of_goal[save][j+1][0]][set_of_goal[save][j+1][1]].__str__()
+    feedback = brain.query('dfs('+start+',['+start+'],'+goal+',X).')
+    path=feedback[0].__str__()
+    path = path[8:len(path)-3]
+    path = path.split(',', 9999)
+    print path
+    for i in range(0,len(path)-1):
+        path_translated.append(dict[path[i]+path[i+1]])
+
+  return path_translated
+
+def breadthFirstSearch(problem = 'CornersProblem'):
+    #get map's outline
+
+  w = problem.walls.width
+  h = problem.walls.height
+  sx, sy = problem.startingPosition
+ # goalx,goaly = problem.goal
+
+ #define the notion to each position in map: (1,1) --> cell01
+
+  notion = []
+  t=0
+  for i in range(0,w):
+    notion.append([])
+  for i in range(0,w):
+    for j in range(0,h):
+        notion[i].append(t)
+        t=t+1
+
+ #prolog file contains connection between cell
+  fname = 'connection.P'
+  from game import Directions
+  dict ={}
+  with open(fname, 'w') as fout:
+
+    fout.write('\n')
+    for i in range(0,w):
+        for j in range(0,h):
+            if not problem.walls[i][j]:
+                if i+1 <= w :
+                    if not problem.walls[i+1][j]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i+1][j].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i+1][j].__str__()
+                        dict[word] = Directions.EAST                #dictionary translating from strings "cellXcellY" to the real direction in game
+                if i-1 >= 0 :
+                    if not problem.walls[i-1][j]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i-1][j].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i-1][j].__str__()
+                        dict[word] = Directions.WEST
+                if j+1 <= h :
+                    if not problem.walls[i][j+1]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i][j+1].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i][j+1].__str__()
+                        dict[word] = Directions.NORTH
+                if j-1 >= 0 :
+                    if not problem.walls[i][j-1]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i][j-1].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i][j-1].__str__()
+                        dict[word] = Directions.SOUTH
+
+
+
+    fout.close()
+ #load prolog fact
+  from spade import pyxf
+  brain = pyxf.xsb('/home/hieule/Downloads/XSB/bin/xsb')
+  brain.load(fname)
+  brain.load('bfs.P')
+  import itertools
+  set_of_goal = list(itertools.permutations(problem.corners, 4))
+  print set_of_goal
+  minsum = 999999
+  save =-1
+  for i in range(0,len(set_of_goal)):
+    start = 'cell'+notion[sx][sy].__str__()
+    goal = 'cell'+notion[set_of_goal[i][0][0]][set_of_goal[i][0][1]].__str__()
+    sum_cost=0
+    feedback = brain.query('solve('+start+','+goal+',X).')
+    path=feedback[0].__str__()
+    path = path[8:len(path)-3]
+    path = path.split(',', 9999)
+    sum_cost = sum_cost+len(path)
+
+    for j in range(0,3):
+        start = 'cell'+notion[set_of_goal[i][j][0]][set_of_goal[i][j][1]].__str__()
+        goal = 'cell'+notion[set_of_goal[i][j+1][0]][set_of_goal[i][j+1][1]].__str__()
+        feedback = brain.query('solve('+start+','+goal+',X).')
+       # print ['dfs('+start+',['+start+'],'+goal+',X).']
+        print feedback
+        time.sleep(1)
+        path=feedback[0].__str__()
+        path = path[8:len(path)-3]
+        path = path.split(',', 9999)
+        sum_cost = sum_cost+len(path)
+    if sum_cost <minsum:
+        save = i
+        minsum=sum_cost
+
+  print set_of_goal[save]
+
+  start = 'cell'+notion[sx][sy].__str__()
+  goal = 'cell'+notion[set_of_goal[save][0][0]][set_of_goal[save][0][1]].__str__()
+  feedback = brain.query('solve('+start+','+goal+',X).')
+  path=feedback[0].__str__()
+  path = path[8:len(path)-3]
+  path = path.split(',', 9999)
+  path_translated=[]
+  path= path[::-1]
+  print path
+  for i in range(0,len(path)-1):
+    path_translated.append(dict[path[i]+path[i+1]])
+
+  for j in range(0,3):
+    start = 'cell'+notion[set_of_goal[save][j][0]][set_of_goal[save][j][1]].__str__()
+    goal = 'cell'+notion[set_of_goal[save][j+1][0]][set_of_goal[save][j+1][1]].__str__()
+    feedback = brain.query('solve('+start+','+goal+',X).')
+    path=feedback[0].__str__()
+    path = path[8:len(path)-3]
+    path = path.split(',', 9999)
+    path= path[::-1]
+    for i in range(0,len(path)-1):
+        path_translated.append(dict[path[i]+path[i+1]])
+
+  return path_translated

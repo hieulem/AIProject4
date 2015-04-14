@@ -1,0 +1,8 @@
+result  = "{'X': '[cell8,cell15,cell16,cell23,cell30,cell31,cell38,cell39,cell40]'}"
+result = result[8:len(result)-3]
+a = result.split(',', 9999)
+print a
+a= a[::-1]
+print a
+for i in range(0,len(a)-1):
+

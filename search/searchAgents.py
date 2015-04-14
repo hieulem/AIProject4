@@ -36,6 +36,7 @@ import time
 import search
 import searchAgents
 
+
 class GoWestAgent(Agent):
   "An agent that goes West until it can't."
   
@@ -148,23 +149,17 @@ class PositionSearchProblem(search.SearchProblem):
     if start != None: self.startState = start
     self.goal = goal
     self.costFn = costFn
+
+
+
+
+
     if warn and (gameState.getNumFood() != 1 or not gameState.hasFood(*goal)):
       print 'Warning: this does not look like a regular search maze'
 
-    filename = 'dmm.p'
-    target = open (filename, 'w') ## a will append, w will over-write
-    #providing the content for the file
-    print "provide three lines of content for the file:"
-    line1 = 'ddfdf'
 
-    #writing the entered content to the file we just created
-    print "entered three lines are written to the file"
-    target.write(line1)
-    target.write("n")
 
-    #providing information that writing task is completed
-    print "we have added those text to the file"
-    target.close()
+
     # For display purposes
     self._visited, self._visitedlist, self._expanded = {}, [], 0
 

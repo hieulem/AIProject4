@@ -1,0 +1,11 @@
+dfs(Goal,_,Goal,[Goal]).
+
+dfs(Start, Checked,Goal,[Start|T]) :-
+    % try a move
+    connect(Start,S2),
+    % ensure the resulting state is new
+    \+member(S2, Checked),
+    % and that this state leads to the goal
+    dfs(S2, [S2|Checked],Goal,T),!.
+
+member(X, [Y|T]) :- X = Y; member(X, T).

@@ -1,0 +1,5 @@
+good(A):-connect(A,_).
+path(A,B):-connect(A,B).
+path(A,B):-good(A),good(B),path(C,A),path(C,B).
+
+

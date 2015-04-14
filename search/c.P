@@ -1,0 +1,43 @@
+solve2(Start,Goal,Solution) :-
+	astar( [ [Start] ],Goal,Solution).
+astar([[Node | Path]|_],Node,[Node|Path]).
+astar( [Node | Queue],Goal,Solution)  :-
+  extend( Node, NewNodes),
+  conc( Queue, NewNodes, Paths1),
+  bubble_sort(Paths1,Path2),
+  astar(Path2,Goal,Solution),!.
+
+concc((H|[]),(Head|Tail)):-
+
+bubble_sort(List,Sorted):-
+	b_sort(List,[],Sorted).
+b_sort([],Acc,Acc).
+b_sort([H|T],Acc,Sorted):-bubble(H,T,NT,Max),b_sort(NT,[Max|Acc],Sorted).
+
+bubble(X,[],[],X).
+bubble([HX|TX],[[HY|TY]|T],[[HY|TY]|NT],Max):-
+	len(TX,X1),len(TY,Y1),
+	h(HX,X2),h(HY,Y2),
+	XX is X1 + X2+1,
+	YY is Y1 + Y2+1,
+	XX>YY,bubble([HX|TX],T,NT,Max).
+bubble([HX|TX],[[HY|TY]|T],[[HX|TX]|NT],Max):-
+	len(TX,X1),len(TY,Y1),
+	h(HX,X2),h(HY,Y2),
+	XX is X1 + X2+1,
+	YY is Y1 + Y2+1,
+	XX=<YY,bubble([HY|TY],T,NT,Max).
+
+extend( [H | T], NewPaths)  :-
+  bagof( [NewNode, H | T],
+         (connect( H, NewNode), \+member( NewNode, [H | T] ) ),
+         NewPaths).
+
+extend( _, [] ).
+conc([], Y, Y).
+conc([A|X], Y, [A|Z]) :- conc(X, Y, Z).
+
+
+len([],0).
+len([_|L],N) :- len(L,N1), N is N1 + 1.
+member(X, [Y|T]) :- X = Y; member(X, T).

@@ -1,0 +1,7 @@
+inrange(X):-connect(X,:).
+inrange(X):-connect(:,X).
+
+path(A,B):-inrange(A),inrange(B),connect(A,B).
+path(A,B):-path(A,C),path(C,B).
+
+

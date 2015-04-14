@@ -1,0 +1,25 @@
+solve( Start, Goal, Solution)  :-
+ bfs( [ [Start] ],Goal,Solution).
+
+bfs( [[Node | Path]|_],Node,[Node|Path]).
+
+bfs( [Node | Queue],X,Solution)  :-
+  extend( Node, NewNodes),
+  conc( Queue, NewNodes, Paths1),
+  bfs(Paths1,X,Solution),!.
+
+extend( [H | T], NewPaths)  :-
+  bagof( [NewNode, H | T],
+         (connect( H, NewNode), \+member( NewNode, [H | T] ) ),
+         NewPaths).
+
+extend( _, [] ).
+conc([], Y, Y).
+conc([A|X], Y, [A|Z]) :- conc(X, Y, Z).
+
+
+len([],0).
+len([_|L],N) :- len(L,N1), N is N1 + 1.
+
+
+member(X, [Y|T]) :- X = Y; member(X, T).

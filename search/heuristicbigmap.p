@@ -1,0 +1,16 @@
+h(cell8,0).
+h(cell10,2).
+h(cell11,3).
+h(cell12,4).
+h(cell15,1).
+h(cell16,2).
+h(cell17,3).
+h(cell19,5).
+h(cell23,3).
+h(cell26,6).
+h(cell30,4).
+h(cell31,5).
+h(cell33,7).
+h(cell38,6).
+h(cell39,7).
+h(cell40,8).

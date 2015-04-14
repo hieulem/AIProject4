@@ -11,7 +11,7 @@ In search.py, you will implement generic search algorithms which are called
 by Pacman agents (in searchAgents.py).
 """
 
-import util
+import util,time
 
 class SearchProblem:
   """
@@ -62,32 +62,168 @@ def tinyMazeSearch(problem):
   Returns a sequence of moves that solves tinyMaze.  For any other
   maze, the sequence of moves will be incorrect, so only use this for tinyMaze
   """
+  
   from game import Directions
   s = Directions.SOUTH
   w = Directions.WEST
   return  [s,s,w,s,w,w,s,w]
 
 def depthFirstSearch(problem):
-  """
-  Search the deepest nodes in the search tree first [p 85].
-  
-  Your search algorithm needs to return a list of actions that reaches
-  the goal.  Make sure to implement a graph search algorithm [Fig. 3.7].
-  
-  To get started, you might want to try some of these simple commands to
-  understand the search problem that is being passed in:
-  
-  print "Start:", problem.getStartState()
-  print "Is the start a goal?", problem.isGoalState(problem.getStartState())
-  print "Start's successors:", problem.getSuccessors(problem.getStartState())
-  """
-  "*** YOUR CODE HERE ***"
-  util.raiseNotDefined()
 
-def breadthFirstSearch(problem):
-  "Search the shallowest nodes in the search tree first. [p 81]"
-  "*** YOUR CODE HERE ***"
-  util.raiseNotDefined()
+  #get map's outline
+
+  w = problem.walls.width
+  h = problem.walls.height
+  sx, sy = problem.getStartState()
+  goalx,goaly = problem.goal
+
+ #define the notion to each position in map: (1,1) --> cell01
+
+  notion = []
+  t=0
+  for i in range(0,w):
+    notion.append([])
+  for i in range(0,w):
+    for j in range(0,h):
+        notion[i].append(t)
+        t=t+1
+
+ #prolog file contains connection between cell
+  fname = 'connection.P'
+  from game import Directions
+  dict ={}
+  with open(fname, 'w') as fout:
+
+    fout.write('\n')
+    for i in range(0,w):
+        for j in range(0,h):
+            if not problem.walls[i][j]:
+                if i+1 <= w :
+                    if not problem.walls[i+1][j]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i+1][j].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i+1][j].__str__()
+                        dict[word] = Directions.EAST                #dictionary translating from strings "cellXcellY" to the real direction in game
+                if i-1 >= 0 :
+                    if not problem.walls[i-1][j]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i-1][j].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i-1][j].__str__()
+                        dict[word] = Directions.WEST
+                if j+1 <= h :
+                    if not problem.walls[i][j+1]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i][j+1].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i][j+1].__str__()
+                        dict[word] = Directions.NORTH
+                if j-1 >= 0 :
+                    if not problem.walls[i][j-1]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i][j-1].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i][j-1].__str__()
+                        dict[word] = Directions.SOUTH
+
+    fout.close()
+
+ #load prolog fact
+  from spade import pyxf
+  brain = pyxf.xsb('/home/hieule/Downloads/XSB/bin/xsb')
+  brain.load(fname)
+  brain.load('dfs.P')
+  goal = 'cell'+notion[goalx][goaly].__str__()
+  start = 'cell'+notion[sx][sy].__str__()
+  feedback = brain.query('dfs('+start+',['+start+'],'+goal+',X).')
+  #feedback = brain.query('solve2('+start+','+goal+',X).')
+  path=feedback[0].__str__()
+
+
+  path = path[8:len(path)-3]
+  path = path.split(',', 9999)
+  #translate the path using dictionary
+  path_translated=[]
+  for i in range(0,len(path)-1):
+      path_translated.append(dict[path[i]+path[i+1]])
+
+  return path_translated
+
+def breadthFirstSearch(problem=None):
+
+  print problem
+ #get map's outline
+
+  w = problem.walls.width
+  h = problem.walls.height
+  sx, sy = problem.getStartState()
+  goalx,goaly = problem.goal
+
+ #define the notion to each position in map: (1,1) --> cell01
+
+  notion = []
+  t=0
+  for i in range(0,w):
+    notion.append([])
+  for i in range(0,w):
+    for j in range(0,h):
+        notion[i].append(t)
+        t=t+1
+
+ #prolog file contains connection between cell
+  fname = 'connection.P'
+  from game import Directions
+  dict ={}
+  with open(fname, 'w') as fout:
+
+    fout.write('\n')
+    for i in range(0,w):
+        for j in range(0,h):
+            if not problem.walls[i][j]:
+                if i+1 <= w :
+                    if not problem.walls[i+1][j]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i+1][j].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i+1][j].__str__()
+                        dict[word] = Directions.EAST                #dictionary translating from strings "cellXcellY" to the real direction in game
+                if i-1 >= 0 :
+                    if not problem.walls[i-1][j]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i-1][j].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i-1][j].__str__()
+                        dict[word] = Directions.WEST
+                if j+1 <= h :
+                    if not problem.walls[i][j+1]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i][j+1].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i][j+1].__str__()
+                        dict[word] = Directions.NORTH
+                if j-1 >= 0 :
+                    if not problem.walls[i][j-1]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i][j-1].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i][j-1].__str__()
+                        dict[word] = Directions.SOUTH
+
+    fout.close()
+
+ #load prolog fact
+  from spade import pyxf
+  brain = pyxf.xsb('/home/hieule/Downloads/XSB/bin/xsb')
+  brain.load(fname)
+  brain.load('bfs.P')
+  goal = 'cell'+notion[goalx][goaly].__str__()
+  start = 'cell'+notion[sx][sy].__str__()
+  #feedback = brain.query('dfs('+start+',['+start+'],'+goal+',X).')
+  feedback = brain.query('solve('+start+','+goal+',X).')
+  path=feedback[0].__str__()
+  path = path[8:len(path)-3]
+  path = path.split(',', 9999)
+  #reverse the path
+  path= path[::-1]
+  #translate the path using dictionary
+  path_translated=[]
+  for i in range(0,len(path)-1):
+      path_translated.append(dict[path[i]+path[i+1]])
+
+  return path_translated
       
 def uniformCostSearch(problem):
   "Search the node of least total cost first. "
@@ -103,10 +239,100 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
   "Search the node that has the lowest combined cost and heuristic first."
+
+
   "*** YOUR CODE HERE ***"
-  util.raiseNotDefined()
-    
-  
+#get map's outline
+
+  w = problem.walls.width
+  h = problem.walls.height
+  sx, sy = problem.getStartState()
+  goalx,goaly = problem.goal
+
+ #define the notion to each position in map: (1,1) --> cell01
+
+  notion = []
+  t=0
+  for i in range(0,w):
+    notion.append([])
+  for i in range(0,w):
+    for j in range(0,h):
+        notion[i].append(t)
+        t=t+1
+
+ #prolog file contains connection between cell
+  fname = 'connection.P'
+  from game import Directions
+  dict ={}
+  with open(fname, 'w') as fout:
+
+    fout.write('\n')
+    for i in range(0,w):
+        for j in range(0,h):
+            if not problem.walls[i][j]:
+                if i+1 <= w :
+                    if not problem.walls[i+1][j]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i+1][j].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i+1][j].__str__()
+                        dict[word] = Directions.EAST                #dictionary translating from strings "cellXcellY" to the real direction in game
+                if i-1 >= 0 :
+                    if not problem.walls[i-1][j]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i-1][j].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i-1][j].__str__()
+                        dict[word] = Directions.WEST
+                if j+1 <= h :
+                    if not problem.walls[i][j+1]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i][j+1].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i][j+1].__str__()
+                        dict[word] = Directions.NORTH
+                if j-1 >= 0 :
+                    if not problem.walls[i][j-1]:
+                        fout.write('connect(cell'+ notion[i][j].__str__() +',cell'+ notion[i][j-1].__str__()+ ').')
+                        fout.write('\n')
+                        word = 'cell'+ notion[i][j].__str__()+'cell'+ notion[i][j-1].__str__()
+                        dict[word] = Directions.SOUTH
+
+    fout.close()
+
+    global hname
+    hname = 'heuristicvalues.P'
+    with open(hname, 'w') as fout:
+        for i in range(0,w):
+            for j in range(0,h):
+                if not problem.walls[i][j]:
+                    distant=abs(i - goalx) + abs(j - goaly)
+                    fout.write('h(cell'+ notion[i][j].__str__()+ ','+ distant.__str__() + ').')
+                    fout.write('\n')
+
+    fout.close()
+ #load prolog fact
+  from spade import pyxf
+  brain = pyxf.xsb('/home/hieule/Downloads/XSB/bin/xsb')
+  brain.load(fname)
+  brain.load(hname)
+
+  brain.load('astar.P')
+  goal = 'cell'+notion[goalx][goaly].__str__()
+  start = 'cell'+notion[sx][sy].__str__()
+  #feedback = brain.query('dfs('+start+',['+start+'],'+goal+',X).')
+  feedback = brain.query('solve2('+start+','+goal+',X).')
+  path=feedback[0].__str__()
+
+
+  path = path[8:len(path)-3]
+  path = path.split(',', 9999)
+  #reverse the path
+  path= path[::-1]
+  #translate the path using dictionary
+  path_translated=[]
+  for i in range(0,len(path)-1):
+      path_translated.append(dict[path[i]+path[i+1]])
+
+  return path_translated
+
 # Abbreviations
 bfs = breadthFirstSearch
 dfs = depthFirstSearch
